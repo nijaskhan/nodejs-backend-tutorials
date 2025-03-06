@@ -6,9 +6,10 @@ const {
     deleteProduct,
     deleteProductFromDatabase
 } = require('./controllers/productControllers');
+const { addUser, getUsers } = require('./controllers/userControllers');
 const authMiddleware = require('./middlewares/authMiddleware');
 
-
+// PRODUCT_ROUTES
 router.post('/addProduct', authMiddleware, addProduct);
 
 router.get('/getProducts', authMiddleware, getProducts);
@@ -19,5 +20,9 @@ router.delete('/deleteProduct', authMiddleware, deleteProduct);
 
 router.delete('/deleteProductFromDatabase', authMiddleware, deleteProductFromDatabase);
 
+// USER_ROUTES
+router.post('/addUser', authMiddleware, addUser);
+
+router.get('/getUsers', authMiddleware, getUsers);
 
 module.exports = router;

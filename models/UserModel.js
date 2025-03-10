@@ -1,5 +1,19 @@
 const { default: mongoose } = require("mongoose");
 
+const cartSchema = new mongoose.Schema({
+    productId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "products",
+        required: true
+    },
+    quantity: {
+        type: Number,
+        required: true
+    }
+}, {
+    timestamps: true,
+});
+
 const userSchema = new mongoose.Schema({
     name: {
         type: String,
@@ -19,11 +33,12 @@ const userSchema = new mongoose.Schema({
         type: Number,
         required: true
     },
-    gender : {
+    gender: {
         type: String,
         enum: ['male', 'female', 'other'],
         required: false
     },
+    cart: [cartSchema],
     isActive: {
         type: Boolean,
         default: true

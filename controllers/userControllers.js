@@ -61,31 +61,86 @@ module.exports = {
             // conditions:
             // fetch users 18+ age
             // sort by gender field
-            const users = await UserModel.aggregate([
-                {
-                    '$match': {
-                        'age': {
-                            '$gte': 18
-                        }
-                    }
-                }, {
-                    '$sort': {
-                        'gender': 1
-                    }
-                }, {
-                    '$match': {
-                        'gender': 'male'
-                    }
-                }
-            ]);
+
+            /* aggregation method */
+            // const users = await UserModel.aggregate([
+            //     {
+            //         '$match': {
+            //             'isDeleted': false
+            //         }
+            //     }, {
+            //         '$lookup': {
+            //             'from': 'products',
+            //             'localField': 'cart.productId',
+            //             'foreignField': '_id',
+            //             'as': 'products'
+            //         }
+            //     }, {
+            //         '$sort': {
+            //             'gender': 1
+            //         }
+            //     }
+            // ]);
+
+            /* using find method */
+            const users = await UserModel
+                .find({ isDeleted: false })
+                .populate('cart.productId')
+                .lean();
 
             res.status(200).json({
                 success: true,
                 statusCode: 200,
                 message: "Users fetched successfully",
                 count: users.length,
-                data: users
-            })
+                data: users,
+            });
+
+        } catch (err) {
+            console.log("error: ", err);
+            res.status(500).json({
+                success: false,
+                statusCode: 500,
+                message: "Internal Server Error"
+            });
+        }
+    },
+    addProductToUserCart: (req, res) => {
+        try {
+            const { userId, product } = req.body;
+            const { productId, quantity } = product;
+
+            if (userId && productId && quantity) {
+
+                UserModel.updateOne(
+                    { _id: userId },
+                    {
+                        $push: {
+                            cart: product
+                        }
+                    }
+                ).then((response) => {
+                    if (response?.modifiedCount !== 0) {
+                        res.status(200).json({
+                            success: true,
+                            statusCode: 200,
+                            message: "Product added to cart successfully"
+                        })
+                    } else {
+                        res.status(200).json({
+                            success: false,
+                            statusCode: 400,
+                            message: "Product adding to cart failed"
+                        })
+                    }
+                })
+            } else {
+                return res.status(200).json({
+                    success: false,
+                    statusCode: 400,
+                    message: "Missing required fields"
+                });
+            }
 
         } catch (err) {
             console.log("error: ", err);

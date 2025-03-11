@@ -1,6 +1,14 @@
+const jwt = require('jsonwebtoken');
+
 const authMiddleware = (req, res, next) => {
-    if (req.query) {
-        if (req.query.token === 'validToken') {
+    try {
+        const token = req.header('Authorization').replace('Bearer ', '');
+
+        // decrypring jwt_token
+        const decryptedToken = jwt.verify(token, process.env.JWT_SECRET);
+
+        if (decryptedToken && decryptedToken?.userId) {
+            req.userId = decryptedToken.userId;
             next();
         } else {
             res.status(200).json({
@@ -9,7 +17,8 @@ const authMiddleware = (req, res, next) => {
                 message: "Not Authroized"
             })
         }
-    } else {
+    } catch (err) {
+        console.log("Error in authMiddleware:", err);
         res.status(200).json({
             success: false,
             statusode: 401,

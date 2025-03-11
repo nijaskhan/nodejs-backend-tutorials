@@ -1,15 +1,22 @@
 const UserModel = require("../models/UserModel");
+const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
+
+// bcrypt: password hashing algorithm
 
 module.exports = {
-    addUser: (req, res) => {
+    addUser: async (req, res) => {
         try {
-            const { name, username, email, age, gender } = req.body;
+            const { name, username, email, age, gender, password } = req.body;
 
-            if (name && username && email && age) {
+            if (name && username && email && age && password) {
+                const encryptedPassword = await bcrypt.hash(password, 10);
+
                 const newUser = new UserModel({
                     name,
                     username,
                     email,
+                    password: encryptedPassword,
                     age,
                     gender
                 });
@@ -134,6 +141,66 @@ module.exports = {
                         })
                     }
                 })
+            } else {
+                return res.status(200).json({
+                    success: false,
+                    statusCode: 400,
+                    message: "Missing required fields"
+                });
+            }
+
+        } catch (err) {
+            console.log("error: ", err);
+            res.status(500).json({
+                success: false,
+                statusCode: 500,
+                message: "Internal Server Error"
+            });
+        }
+    },
+    userLogin: async (req, res) => {
+        try {
+            const { email, password } = req.body;
+
+            if (email && password) {
+                const userFound = await UserModel.findOne({ email: email }).lean();
+
+                if (userFound) {
+                    const isPasswordMatch = await bcrypt.compare(password, userFound.password);
+
+                    if (isPasswordMatch) {
+                        delete userFound.password;
+
+                        // creating a jwt token for authentication purposes
+                        const jwtSecret = process.env.JWT_SECRET;
+                        const token = jwt.sign(
+                            { userId: userFound?._id },
+                            jwtSecret,
+                            { expiresIn: '5d' }
+                        )
+
+                        return res.status(200).json({
+                            success: true,
+                            statusCode: 200,
+                            message: "User Login successfully",
+                            token: token,
+                            user: userFound
+                        });
+                    } else {
+                        return res.status(200).json({
+                            success: false,
+                            statusCode: 401,
+                            message: "Incorrect password!"
+                        });
+                    }
+
+                } else {
+                    return res.status(200).json({
+                        success: false,
+                        statusCode: 401,
+                        message: "User does not exist!"
+                    });
+                }
             } else {
                 return res.status(200).json({
                     success: false,

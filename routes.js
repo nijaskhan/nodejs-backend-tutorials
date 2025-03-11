@@ -6,7 +6,7 @@ const {
     deleteProduct,
     deleteProductFromDatabase
 } = require('./controllers/productControllers');
-const { addUser, getUsers, addProductToUserCart } = require('./controllers/userControllers');
+const { addUser, getUsers, addProductToUserCart, userLogin } = require('./controllers/userControllers');
 const authMiddleware = require('./middlewares/authMiddleware');
 
 // PRODUCT_ROUTES
@@ -26,5 +26,7 @@ router.post('/addUser', authMiddleware, addUser);
 router.get('/getUsers', authMiddleware, getUsers);
 
 router.put('/addProductToUserCart', authMiddleware, addProductToUserCart)
+
+router.post('/userLogin', userLogin);
 
 module.exports = router;

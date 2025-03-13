@@ -184,7 +184,7 @@ module.exports = {
                             statusCode: 200,
                             message: "User Login successfully",
                             token: token,
-                            user: userFound
+                            data: userFound
                         });
                     } else {
                         return res.status(200).json({
